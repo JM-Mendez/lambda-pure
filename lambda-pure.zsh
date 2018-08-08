@@ -132,11 +132,10 @@ prompt_pure_work_in_progress() {
 }
 
 prompt_pure_has_stash() {
-  local stash=$(git stash list 2>/dev/null | grep $(git_current_branch))
-  if [[ -n $stash ]]; then
-    echo "%F{blue}+++ $(echo $stash | grep -o "stash@{[0-9]*}") +++ %f"
+  local stash=$(git stash list 2>/dev/null)
+  if [[ -n $stash ]] && [[ $(git stash list 2>/dev/null | grep $(git_current_branch)) ]]; then
+    echo "%F{blue}+++ $(echo $stash) | grep -o "stash@{[0-9]*}") +++ %f"
   fi
-  
 }
 
 prompt_pure_preprompt_render() {
