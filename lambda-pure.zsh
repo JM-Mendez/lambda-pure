@@ -125,6 +125,20 @@ prompt_pure_string_length_to_var() {
 	typeset -g "${var}"="${length}"
 }
 
+prompt_pure_work_in_progress() {
+  if [[ $(git log -n 1 2>/dev/null) ]] && $(git log -n 1 2>/dev/null | grep -q -c "\-\-wip\-\-"); then
+    echo "%F{red}=== WIP!! === %f"
+  fi
+}
+
+prompt_pure_has_stash() {
+  local stash=$(git stash list 2>/dev/null | grep $(git_current_branch))
+  if [[ -n $stash ]]; then
+    echo "%F{blue}+++ $(echo $stash | grep -o "stash@{[0-9]*}") +++ %f"
+  fi
+  
+}
+
 prompt_pure_preprompt_render() {
 	# store the current prompt_subst setting so that it can be restored later
 	local prompt_subst_status=$options[prompt_subst]
@@ -142,7 +156,7 @@ prompt_pure_preprompt_render() {
 	# construct preprompt, beginning with path
 	local preprompt="%F{blue}%~%f"
 	# git info
-	preprompt+="%F{$git_color}${vcs_info_msg_0_}${prompt_pure_git_dirty}%f"
+	preprompt+="%F{$git_color}${vcs_info_msg_0_} ${prompt_pure_git_dirty}%f"
 	# git pull/push arrows
 	preprompt+="%F{yellow}${prompt_pure_git_arrows}%f"
 	# username and machine if applicable
@@ -150,8 +164,10 @@ prompt_pure_preprompt_render() {
 	# execution time
 	preprompt+="%F{cyan}${prompt_pure_cmd_exec_time}%f"
 
+  local WIP=$(prompt_pure_work_in_progress)
+  local STASH=$(prompt_pure_has_stash)
 	# NodeJS version
-	local rpreprompt="%F{green}⬢ ${prompt_pure_node_version}%f"
+	local rpreprompt="$WIP$STASH%F{green}⬢ ${prompt_pure_node_version}%f"
 
 	integer preprompt_left_length preprompt_right_length space_length
 	prompt_pure_string_length_to_var "${preprompt}" "preprompt_left_length"
@@ -325,12 +341,13 @@ prompt_pure_async_tasks() {
 prompt_pure_async_callback() {
 	local job=$1
 	local output=$3
-	local exec_time=$4
+	local exec_time=${4:-0}
 
 	case "${job}" in
 		prompt_pure_async_git_dirty)
 			prompt_pure_git_dirty=$output
 			prompt_pure_preprompt_render
+
 
 			# When prompt_pure_git_last_dirty_check_timestamp is set, the git info is displayed in a different color.
 			# To distinguish between a "fresh" and a "cached" result, the preprompt is rendered before setting this
