@@ -73,7 +73,7 @@ prompt_pure_check_git_arrows() {
 
 	local arrow_status
 	# check git left and right arrow_status
-	arrow_status="$(command git rev-list --left-right --count HEAD...@'{u}' 2>/dev/null)"
+	arrow_status="$(command git rev-list --left-right --count $(git_current_branch)...origin/develop 2>/dev/null)"
 	# exit if the command failed
 	(( !$? )) || return
 
