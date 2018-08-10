@@ -81,10 +81,12 @@ prompt_pure_check_git_arrows() {
 	arrow_status=(${(ps:\t:)arrow_status})
 	local arrows left=${arrow_status[1]} right=${arrow_status[2]}
 
-	(( ${right:-0} > 0 )) && arrows+="${PURE_GIT_DOWN_ARROW:-▼}"
-	(( ${left:-0} > 0 )) && arrows+="${PURE_GIT_UP_ARROW:-▲}"
+	if (( ${right:-0} < 1 )); then arrows+=" %F{green}${PURE_GIT_DOWN_ARROW:-\u2713} $right";
+	else (( ${right:-0} > 0 )) && arrows+=" %F{yellow}${PURE_GIT_DOWN_ARROW:-\u2193}$right";
+  fi
+	# (( ${left:-0} > 0 )) && arrows+=" $left%F{yellow}${PURE_GIT_UP_ARROW:-\u2B06}"
 
-	[[ -n $arrows ]] && prompt_pure_git_arrows=" ${arrows}"
+	[[ -n $arrows ]] && prompt_pure_git_arrows="${arrows}"
 }
 
 prompt_pure_set_title() {
@@ -127,7 +129,7 @@ prompt_pure_string_length_to_var() {
 
 prompt_pure_work_in_progress() {
   if [[ $(git log -n 1 2>/dev/null) ]] && $(git log -n 1 2>/dev/null | grep -q -c "\-\-wip\-\-"); then
-    echo "%F{red}WIP!!%f"
+    echo "%F{red} WIP!!%f"
   fi
 }
 
@@ -157,7 +159,10 @@ prompt_pure_preprompt_render() {
   # local WIP=$(prompt_pure_work_in_progress)
 	# git info
   local IS_DIRTY=$prompt_pure_git_dirty
-  [[ $prompt_pure_git_dirty =~ '^0.' ]] && IS_DIRTY=$(prompt_pure_work_in_progress)
+  if [[ $prompt_pure_git_dirty =~ '^0.' ]]; then IS_DIRTY=$(prompt_pure_work_in_progress);
+  else IS_DIRTY+="$(prompt_pure_work_in_progress)"
+  fi
+
 	preprompt+="%F{$git_color}${vcs_info_msg_0_} ${IS_DIRTY}%f"
 	# git pull/push arrows
 	preprompt+="%F{yellow}${prompt_pure_git_arrows}%f"
@@ -278,7 +283,7 @@ prompt_pure_async_git_dirty() {
 		test -z "$(command git status --porcelain --ignore-submodules -unormal)"
 	fi
 
-	(( $? )) && echo " %F{red}${PURE_GIT_DIRTY:-×}%f"
+	(( $? )) && echo " %F{red}${PURE_GIT_DIRTY:-\u2179}%f"
 }
 
 prompt_pure_async_git_fetch() {
