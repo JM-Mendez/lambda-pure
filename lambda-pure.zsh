@@ -127,15 +127,15 @@ prompt_pure_string_length_to_var() {
 
 prompt_pure_work_in_progress() {
   if [[ $(git log -n 1 2>/dev/null) ]] && $(git log -n 1 2>/dev/null | grep -q -c "\-\-wip\-\-"); then
-    echo "%F{red}=== WIP!! === %f"
+    echo "%F{red}WIP!!%f"
   fi
 }
 
 prompt_pure_has_stash() {
-  local stash=$(git stash list 2>/dev/null)
-  if [[ -n $stash ]] && [[ $(git stash list 2>/dev/null | grep $(git_current_branch)) ]]; then
-    echo "%F{blue}+++ $(echo $stash) | grep -o "stash@{[0-9]*}") +++ %f"
-  fi
+  # local stash=$(git stash list 2>/dev/null)
+  # if [[ -n $stash ]] && [[ $(git stash list 2>/dev/null | grep $(git_current_branch)) ]]; then
+  #   echo "%F{blue}+++ $(echo $stash) | grep -o "stash@{[0-9]*}") +++ %f"
+  # fi
 }
 
 prompt_pure_preprompt_render() {
@@ -154,8 +154,11 @@ prompt_pure_preprompt_render() {
 
 	# construct preprompt, beginning with path
 	local preprompt="%F{blue}%~%f"
+  # local WIP=$(prompt_pure_work_in_progress)
 	# git info
-	preprompt+="%F{$git_color}${vcs_info_msg_0_} ${prompt_pure_git_dirty}%f"
+  local IS_DIRTY=$prompt_pure_git_dirty
+  [[ $prompt_pure_git_dirty =~ '^0.' ]] && IS_DIRTY=$(prompt_pure_work_in_progress)
+	preprompt+="%F{$git_color}${vcs_info_msg_0_} ${IS_DIRTY}%f"
 	# git pull/push arrows
 	preprompt+="%F{yellow}${prompt_pure_git_arrows}%f"
 	# username and machine if applicable
@@ -163,10 +166,8 @@ prompt_pure_preprompt_render() {
 	# execution time
 	preprompt+="%F{cyan}${prompt_pure_cmd_exec_time}%f"
 
-  local WIP=$(prompt_pure_work_in_progress)
-  local STASH=$(prompt_pure_has_stash)
 	# NodeJS version
-	local rpreprompt="$WIP$STASH%F{green}⬢ ${prompt_pure_node_version}%f"
+	local rpreprompt="%F{green}⬢ ${prompt_pure_node_version}%f"
 
 	integer preprompt_left_length preprompt_right_length space_length
 	prompt_pure_string_length_to_var "${preprompt}" "preprompt_left_length"
