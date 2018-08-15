@@ -69,7 +69,7 @@ prompt_pure_check_git_arrows() {
 	prompt_pure_git_arrows=
 
 	# check if there is an upstream configured for this branch
-	command git rev-parse --abbrev-ref @'{u}' &>/dev/null || return
+	# command git rev-parse --abbrev-ref @'{u}' &>/dev/null || return
 
 	local arrow_status
 	# check git left and right arrow_status
@@ -81,8 +81,9 @@ prompt_pure_check_git_arrows() {
 	arrow_status=(${(ps:\t:)arrow_status})
 	local arrows left=${arrow_status[1]} right=${arrow_status[2]}
 
+  # check if ahead or behind
 	if (( ${right:-0} < 1 )); then arrows+=" %F{green}${PURE_GIT_DOWN_ARROW:-\u2713} $right";
-	else (( ${right:-0} > 0 )) && arrows+=" %F{yellow}${PURE_GIT_DOWN_ARROW:-\u2193}$right";
+	elif (( ${right:-0} > 0 )); then arrows+=" %F{yellow}${PURE_GIT_DOWN_ARROW:-\u2193}$right";
   fi
 	# (( ${left:-0} > 0 )) && arrows+=" $left%F{yellow}${PURE_GIT_UP_ARROW:-\u2B06}"
 
