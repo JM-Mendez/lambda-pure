@@ -136,9 +136,10 @@ prompt_pure_work_in_progress() {
 
 prompt_pure_has_stash() {
   # local stash=$(git stash list 2>/dev/null)
-  # if [[ -n $stash ]] && [[ $(git stash list 2>/dev/null | grep $(git_current_branch)) ]]; then
-  #   echo "%F{blue}+++ $(echo $stash) | grep -o "stash@{[0-9]*}") +++ %f"
-  # fi
+  if [[ -n $(git stash list 2>/dev/null) ]]; then
+    local count=$(git stash list | wc -l | xargs)
+    echo "%F{blue} S$count%f"
+  fi
 }
 
 prompt_pure_preprompt_render() {
@@ -160,8 +161,12 @@ prompt_pure_preprompt_render() {
   # local WIP=$(prompt_pure_work_in_progress)
 	# git info
   local IS_DIRTY=$prompt_pure_git_dirty
-  if [[ $prompt_pure_git_dirty =~ '^0.' ]]; then IS_DIRTY=$(prompt_pure_work_in_progress);
-  else IS_DIRTY+="$(prompt_pure_work_in_progress)"
+  if [[ $prompt_pure_git_dirty =~ '^0.' ]]; then 
+    IS_DIRTY=$(prompt_pure_work_in_progress)
+    IS_DIRTY+=$(prompt_pure_has_stash)
+  else 
+    IS_DIRTY+="$(prompt_pure_work_in_progress)"
+    IS_DIRTY+=$(prompt_pure_has_stash)
   fi
 
 	preprompt+="%F{$git_color}${vcs_info_msg_0_} ${IS_DIRTY}%f"
